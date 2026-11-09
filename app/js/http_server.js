@@ -53,6 +53,16 @@ window.HttpServer = (function() {
       serverSocket = null;
     }
     isRunning = false;
+    try {
+      if (window.MjpegStreamer && window.MjpegStreamer.stopAllClients) {
+        window.MjpegStreamer.stopAllClients();
+      }
+    } catch (e1) {}
+    try {
+      if (window.AudioStreamer && window.AudioStreamer.stopAllClients) {
+        window.AudioStreamer.stopAllClients();
+      }
+    } catch (e2) {}
   }
 
   function handleConnection(socket) {
@@ -258,7 +268,7 @@ window.HttpServer = (function() {
       var html = window.WebPanel.getIndexHtml(localIp, port);
       sendResponseAndClose(socket, 200, 'OK', { 'Content-Type': 'text/html; charset=utf-8' }, html);
       return;
-    } else if (path === '/video/mjpeg') {
+    } else if (path === '/video/mjpeg' || path === '/video') {
       if (!streamingActive) {
         sendResponseAndClose(socket, 503, 'Service Unavailable', { 'Content-Type': 'application/json' }, JSON.stringify({ error: 'streaming_disabled' }));
         return;
@@ -279,7 +289,7 @@ window.HttpServer = (function() {
       window.AudioStreamer.playTalkAudio(req.body, rate);
       sendResponseAndClose(socket, 200, 'OK', { 'Content-Type': 'application/json' }, JSON.stringify({ status: 'ok' }));
       return;
-    } else if (path === '/info.json') {
+    } else if (path === '/info.json' || path === '/status.json' || path === '/status') {
       handleInfo(socket);
     } else if (path === '/record/start') {
       var withAudio = true;

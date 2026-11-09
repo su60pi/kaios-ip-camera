@@ -7,6 +7,12 @@ window.Recorder = (function() {
   var recordStartTime = 0;
   var currentFilename = "";
   var currentBitrate = 350000; // 350 kbps (balanced low-size default)
+  var MAX_SEGMENT_DURATION_MS = 300000; // 5-minute rolling segment limit to protect 512MB RAM
+  var segmentIndex = 1;
+  var isSegmentRolling = false;
+  var currentStream = null;
+  var currentRecorderOptions = null;
+  var userStopCallback = null;
   try {
     var savedBitrate = localStorage.getItem('kaios_ipcam_rec_bitrate');
     if (savedBitrate) {
@@ -135,28 +141,17 @@ window.Recorder = (function() {
         audioBitsPerSecond: 32000
       };
 
-      try {
-        mediaRecorder = new MediaRecorder(streamToRecord, recorderOptions);
-      } catch (e1) {
-        try {
-          mediaRecorder = new MediaRecorder(streamToRecord, { mimeType: mimeType });
-        } catch (e2) {
-          mediaRecorder = new MediaRecorder(streamToRecord);
-        }
-      }
-
+      segmentIndex = 1;
+      isSegmentRolling = false;
+      currentStream = streamToRecord;
+      currentRecorderOptions = recorderOptions;
       recordedChunks = [];
       var audioSuffix = recordingWithAudio ? "_audio" : "_noaudio";
       var ext = (mimeType.indexOf('mp4') !== -1 ? ".mp4" : ".webm");
-      currentFilename = "rec_" + formatDate(new Date()) + audioSuffix + ext;
+      currentFilename = "rec_" + formatDate(new Date()) + "_p" + segmentIndex + audioSuffix + ext;
       recordStartTime = Date.now();
 
-      mediaRecorder.ondataavailable = function(e) {
-        if (e.data && e.data.size > 0) {
-          recordedChunks.push(e.data);
-        }
-      };
-
+      setupMediaRecorderInstance(currentStream, currentRecorderOptions);
       mediaRecorder.start(1000); // 1-sec chunking
       isRecording = true;
 
@@ -170,60 +165,76 @@ window.Recorder = (function() {
     });
   }
 
-  function stopRecording() {
-    if (!mediaRecorder || mediaRecorder.state === 'inactive') {
-      isRecording = false;
-      recordingWithAudio = false;
-      return Promise.reject(new Error("Not currently recording"));
+  function setupMediaRecorderInstance(stream, options) {
+    try {
+      mediaRecorder = new MediaRecorder(stream, options);
+    } catch (e1) {
+      try {
+        mediaRecorder = new MediaRecorder(stream, { mimeType: options.mimeType });
+      } catch (e2) {
+        mediaRecorder = new MediaRecorder(stream);
+      }
     }
 
-    return new Promise(function(resolve, reject) {
-      mediaRecorder.onstop = function() {
+    mediaRecorder.ondataavailable = function(e) {
+      if (e.data && e.data.size > 0) {
+        recordedChunks.push(e.data);
+      }
+      // Check segment limit (5 minutes) to prevent memory accumulation and OOM
+      if (isRecording && !isSegmentRolling && (Date.now() - recordStartTime >= MAX_SEGMENT_DURATION_MS)) {
+        rollNextSegment();
+      }
+    };
+
+    mediaRecorder.onstop = function() {
+      handleRecorderStop();
+    };
+  }
+
+  function rollNextSegment() {
+    if (!isRecording || isSegmentRolling || !mediaRecorder) return;
+    isSegmentRolling = true;
+    try {
+      mediaRecorder.stop();
+    } catch (e) {
+      isSegmentRolling = false;
+    }
+  }
+
+  function handleRecorderStop() {
+    var durationMs = Date.now() - recordStartTime;
+    var mime = (currentRecorderOptions && currentRecorderOptions.mimeType) || (mediaRecorder && mediaRecorder.mimeType) || 'video/webm';
+    var blob = new Blob(recordedChunks, { type: mime });
+    var savedName = currentFilename;
+    recordedChunks = [];
+
+    function afterSaved() {
+      if (isSegmentRolling && isRecording) {
+        // Roll to next 5-minute segment
+        segmentIndex++;
+        var audioSuffix = recordingWithAudio ? "_audio" : "_noaudio";
+        var ext = (mime.indexOf('mp4') !== -1 ? ".mp4" : ".webm");
+        currentFilename = "rec_" + formatDate(new Date()) + "_p" + segmentIndex + audioSuffix + ext;
+        recordStartTime = Date.now();
+        isSegmentRolling = false;
+
+        setupMediaRecorderInstance(currentStream, currentRecorderOptions);
+        mediaRecorder.start(1000);
+        console.log("Auto-rolled recording to segment:", currentFilename);
+      } else {
+        // Normal stop by user
         isRecording = false;
         var wasWithAudio = recordingWithAudio;
         recordingWithAudio = false;
 
-        // Release mic if no active live audio listeners
         if (window.AudioStreamer && window.AudioStreamer.getAudioClientCount() === 0) {
           try { window.AudioStreamer.stopMicCapture(); } catch (e) {}
         }
 
-        var durationMs = Date.now() - recordStartTime;
-        var blob = new Blob(recordedChunks, { type: mediaRecorder.mimeType || 'video/webm' });
-        var savedName = currentFilename;
-        recordedChunks = [];
-
-        var storage = getStorage();
-        if (storage) {
-          var req = storage.addNamed(blob, "videos/" + savedName);
-          req.onsuccess = function() {
-            resolve({
-              recording: false,
-              withAudio: wasWithAudio,
-              filename: savedName,
-              durationMs: durationMs,
-              sizeBytes: blob.size
-            });
-          };
-          req.onerror = function() {
-            // If videos/ folder fails, save directly to root
-            var reqRoot = storage.addNamed(blob, savedName);
-            reqRoot.onsuccess = function() {
-              resolve({
-                recording: false,
-                withAudio: wasWithAudio,
-                filename: savedName,
-                durationMs: durationMs,
-                sizeBytes: blob.size
-              });
-            };
-            reqRoot.onerror = function(err) {
-              reject(new Error("Failed to save recording to SD card: " + (err.target ? err.target.error.name : "unknown")));
-            };
-          };
-        } else {
-          // If no DeviceStorage (browser simulation), return memory blob
-          resolve({
+        if (userStopCallback) {
+          var cb = userStopCallback;
+          userStopCallback = null;
+          cb({
             recording: false,
             withAudio: wasWithAudio,
             filename: savedName,
@@ -232,13 +243,42 @@ window.Recorder = (function() {
             blob: blob
           });
         }
-      };
+      }
+    }
 
+    var storage = getStorage();
+    if (storage) {
+      var req = storage.addNamed(blob, "videos/" + savedName);
+      req.onsuccess = function() { afterSaved(); };
+      req.onerror = function() {
+        var reqRoot = storage.addNamed(blob, savedName);
+        reqRoot.onsuccess = function() { afterSaved(); };
+        reqRoot.onerror = function(err) {
+          console.warn("Save recording segment error:", err);
+          afterSaved();
+        };
+      };
+    } else {
+      afterSaved();
+    }
+  }
+
+  function stopRecording() {
+    if (!mediaRecorder || mediaRecorder.state === 'inactive') {
+      isRecording = false;
+      recordingWithAudio = false;
+      return Promise.reject(new Error("Not currently recording"));
+    }
+
+    isSegmentRolling = false;
+    return new Promise(function(resolve, reject) {
+      userStopCallback = resolve;
       try {
         mediaRecorder.stop();
       } catch (err) {
         isRecording = false;
         recordingWithAudio = false;
+        userStopCallback = null;
         reject(err);
       }
     });

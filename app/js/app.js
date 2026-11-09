@@ -7,6 +7,8 @@
 
   var cpuWakeLock = null;
   var screenWakeLock = null;
+  var wifiWakeLock = null;
+  var keepAliveInterval = null;
 
   var serverPort = 4444;
   var currentRes = "640x480";
@@ -57,12 +59,37 @@
     });
 
     setupKeyListeners();
+
+    var skLeft = document.getElementById('sk-left');
+    if (skLeft) {
+      skLeft.addEventListener('click', function() {
+        if (inSettings) closeSettings();
+        else { window.CameraController.toggleCamera(); updateTelemetry(); }
+      });
+    }
+    var skCenter = document.getElementById('sk-center');
+    if (skCenter) {
+      skCenter.addEventListener('click', function() {
+        if (inSettings) cycleCurrentSetting();
+        else toggleServer();
+      });
+    }
+    var skRight = document.getElementById('sk-right');
+    if (skRight) {
+      skRight.addEventListener('click', function() {
+        if (inSettings) closeSettings();
+        else openSettings();
+      });
+    }
+
     setInterval(updateTelemetry, 1500);
     updateTelemetry();
   }
 
   function startServer() {
     acquireWakeLock('cpu');
+    acquireWakeLock('wifi');
+    startNetworkKeepalive();
     window.HttpServer.start({
       port: serverPort,
       authEnabled: authEnabled,
@@ -73,15 +100,30 @@
       updateUiState();
     }).catch(function(err) {
       console.warn("HttpServer.start warning:", err);
-      isServerRunning = true; // Set running in fallback mode
-      updateUiState();
+      setTimeout(function() {
+        window.HttpServer.start({
+          port: serverPort,
+          authEnabled: authEnabled,
+          authUser: "admin",
+          authPass: "admin"
+        }).then(function() {
+          isServerRunning = true;
+          updateUiState();
+        }).catch(function(e2) {
+          console.error("HttpServer.start retry error:", e2);
+          isServerRunning = false;
+          updateUiState();
+        });
+      }, 500);
     });
   }
 
   function stopServer() {
     window.HttpServer.stop();
     isServerRunning = false;
+    stopNetworkKeepalive();
     releaseWakeLock('cpu');
+    releaseWakeLock('wifi');
     updateUiState();
   }
 
@@ -200,15 +242,17 @@
 
   function acquireWakeLock(topic) {
     try {
+      var reqLock = navigator.requestWakeLock || (navigator.b2g && navigator.b2g.requestWakeLock);
+      if (!reqLock) return;
       if (topic === 'cpu' && !cpuWakeLock) {
-        if (navigator.requestWakeLock) cpuWakeLock = navigator.requestWakeLock('cpu');
-        else if (navigator.b2g && navigator.b2g.requestWakeLock) cpuWakeLock = navigator.b2g.requestWakeLock('cpu');
+        cpuWakeLock = reqLock.call(navigator, 'cpu');
+      } else if (topic === 'wifi' && !wifiWakeLock) {
+        wifiWakeLock = reqLock.call(navigator, 'wifi');
       } else if (topic === 'screen' && !screenWakeLock) {
-        if (navigator.requestWakeLock) screenWakeLock = navigator.requestWakeLock('screen');
-        else if (navigator.b2g && navigator.b2g.requestWakeLock) screenWakeLock = navigator.b2g.requestWakeLock('screen');
+        screenWakeLock = reqLock.call(navigator, 'screen');
       }
     } catch (e) {
-      console.warn("Wake lock error:", e);
+      console.warn("Wake lock error (" + topic + "):", e);
     }
   }
 
@@ -217,11 +261,31 @@
       if (topic === 'cpu' && cpuWakeLock) {
         cpuWakeLock.unlock();
         cpuWakeLock = null;
+      } else if (topic === 'wifi' && wifiWakeLock) {
+        wifiWakeLock.unlock();
+        wifiWakeLock = null;
       } else if (topic === 'screen' && screenWakeLock) {
         screenWakeLock.unlock();
         screenWakeLock = null;
       }
     } catch (e) {}
+  }
+
+  function startNetworkKeepalive() {
+    if (keepAliveInterval) clearInterval(keepAliveInterval);
+    keepAliveInterval = setInterval(function() {
+      if (!isServerRunning) return;
+      if (!wifiWakeLock) acquireWakeLock('wifi');
+      if (!cpuWakeLock) acquireWakeLock('cpu');
+      detectIpAddress();
+    }, 25000);
+  }
+
+  function stopNetworkKeepalive() {
+    if (keepAliveInterval) {
+      clearInterval(keepAliveInterval);
+      keepAliveInterval = null;
+    }
   }
 
   function toggleScreenSaver() {
@@ -299,6 +363,8 @@
     }
   }
 
+  var lastActionTime = 0;
+
   // KaiOS Keypad Navigation Controller
   function setupKeyListeners() {
     window.addEventListener('keydown', function(e) {
@@ -315,6 +381,10 @@
       // SoftLeft / Camera Switch / Back in settings
       if (key === 'SoftLeft' || code === 163 || code === 113 || key === 'F1' || key === 'Call') {
         e.preventDefault();
+        if (e.repeat) return;
+        var now = Date.now();
+        if (now - lastActionTime < 350) return;
+        lastActionTime = now;
         if (inSettings) {
           closeSettings();
         } else {
@@ -327,6 +397,10 @@
       // SoftRight / Settings Toggle
       if (key === 'SoftRight' || code === 164 || code === 114 || key === 'F2') {
         e.preventDefault();
+        if (e.repeat) return;
+        var now = Date.now();
+        if (now - lastActionTime < 350) return;
+        lastActionTime = now;
         if (inSettings) {
           closeSettings();
         } else {
@@ -335,9 +409,15 @@
         return;
       }
 
-      // Center Key / Enter
-      if (key === 'Enter' || code === 13) {
+      // Center Key / Enter / Select / Ok / Fire
+      var isCenter = (key === 'Enter' || key === 'Select' || key === 'Accept' || key === 'Ok' ||
+                      code === 13 || code === 14 || code === 66 || code === 32);
+      if (isCenter) {
         e.preventDefault();
+        if (e.repeat) return;
+        var now = Date.now();
+        if (now - lastActionTime < 400) return;
+        lastActionTime = now;
         if (inSettings) {
           cycleCurrentSetting();
         } else {

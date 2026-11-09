@@ -23,6 +23,8 @@ window.CameraController = (function() {
   var isCapturing = false;
   var isEncoding = false;
   var frameIntervalId = null;
+  var sharedFileReader = null;
+  var idleFrameSkip = 0;
 
   var onFrameCallbacks = [];
   var actualFps = 0;
@@ -170,6 +172,16 @@ window.CameraController = (function() {
 
   function captureFrame() {
     if (!videoElement || videoElement.readyState < 2 || isEncoding) return;
+
+    var hasClients = (window.MjpegStreamer && window.MjpegStreamer.getClientCount && window.MjpegStreamer.getClientCount() > 0);
+    var hasRecording = (window.Recorder && window.Recorder.getStatus && window.Recorder.getStatus().recording);
+    if (!hasClients && !hasRecording) {
+      idleFrameSkip++;
+      if (idleFrameSkip % Math.max(1, targetFps) !== 0) {
+        return;
+      }
+    }
+
     isEncoding = true;
 
     var cw = width;
@@ -233,16 +245,22 @@ window.CameraController = (function() {
           return;
         }
         latestFrameBlob = blob;
-        var reader = new FileReader();
-        reader.onloadend = function() {
-          latestFrameBuffer = reader.result;
+        if (!sharedFileReader) {
+          sharedFileReader = new FileReader();
+          sharedFileReader.onloadend = function() {
+            latestFrameBuffer = sharedFileReader.result;
+            isEncoding = false;
+            notifyFrameListeners(latestFrameBuffer, latestFrameBlob);
+          };
+          sharedFileReader.onerror = function() {
+            isEncoding = false;
+          };
+        }
+        try {
+          sharedFileReader.readAsArrayBuffer(blob);
+        } catch (e) {
           isEncoding = false;
-          notifyFrameListeners(latestFrameBuffer, latestFrameBlob);
-        };
-        reader.onerror = function() {
-          isEncoding = false;
-        };
-        reader.readAsArrayBuffer(blob);
+        }
       }, 'image/jpeg', quality);
     } else {
       // Fallback using toDataURL

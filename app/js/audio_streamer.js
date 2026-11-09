@@ -273,6 +273,17 @@ window.AudioStreamer = (function() {
     }
   }
 
+  function stopAllClients() {
+    var copy = audioClients.slice();
+    audioClients = [];
+    for (var i = 0; i < copy.length; i++) {
+      try {
+        copy[i].close();
+      } catch (e) {}
+    }
+    stopMicCapture();
+  }
+
   return {
     init: init,
     startMicCapture: startMicCapture,
@@ -280,6 +291,7 @@ window.AudioStreamer = (function() {
     getMicStream: function() { return micStream; },
     addClient: addClient,
     removeClient: removeClient,
+    stopAllClients: stopAllClients,
     playTalkAudio: playTalkAudio,
     getAudioClientCount: function() { return audioClients.length; }
   };

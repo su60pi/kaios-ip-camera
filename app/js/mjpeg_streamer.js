@@ -138,10 +138,22 @@ window.MjpegStreamer = (function() {
     return clients.length;
   }
 
+  function stopAllClients() {
+    var copy = clients.slice();
+    clients = [];
+    for (var i = 0; i < copy.length; i++) {
+      try {
+        copy[i].close();
+      } catch (e) {}
+    }
+    notifyClientCount();
+  }
+
   return {
     init: init,
     addClient: addClient,
     removeClient: removeClient,
+    stopAllClients: stopAllClients,
     getClientCount: getClientCount,
     setOnClientCountChange: setOnClientCountChange
   };
