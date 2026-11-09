@@ -1,7 +1,7 @@
 {
   "name": "IP Camera",
   "description": "Full-featured network IP camera for KaiOS 2.5",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "launch_path": "/index.html",
   "type": "certified",
   "developer": {
