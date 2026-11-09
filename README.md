@@ -156,3 +156,17 @@ To rebuild `dist/kaios-ip-camera.zip` after making modifications to `app/`:
 python3 build.py
 ```
 This automatically updates `dist/application.zip` and the outer `dist/kaios-ip-camera.zip`.
+
+---
+
+## 📄 License
+
+This project is licensed under the **Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)** License.
+
+* ✅ **Modify & Upgrade**: You are free to run, study, modify, adapt, contribute to, and enhance this software.
+* ✅ **Share & Distribute**: You can share and redistribute the code and installable packages.
+* ❌ **Non-Commercial**: You may **NOT** sell, license, or monetize this software or any derivatives commercially.
+* 🔁 **Share-Alike**: If you alter, transform, or build upon this software, you must distribute your contributions under the same CC BY-NC-SA 4.0 license.
+* 👤 **Attribution**: You must give appropriate credit to the original author ([su60pi](https://github.com/su60pi)).
+
+See the [LICENSE](LICENSE) file for the full legal text.
