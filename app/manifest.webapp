@@ -1,6 +1,6 @@
 {
   "name": "IP Camera",
-  "description": "Full-featured network IP camera for KaiOS 2.5. Remote web control, live MJPEG streaming, still snapshots, two-way audio talk, and local recording.",
+  "description": "Full-featured network IP camera for KaiOS 2.5. Remote web control, live MJPEG streaming, still snapshots, live audio monitoring, and local recording.",
   "version": "1.1.0",
   "launch_path": "/index.html",
   "type": "certified",
