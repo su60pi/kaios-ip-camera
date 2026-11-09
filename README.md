@@ -15,7 +15,6 @@
 * 📹 **Motion JPEG Stream (`/video/mjpeg`)**: Compatible with Frigate NVR, Home Assistant MJPEG Camera, MotionEye, OpenCV, and browsers.
 * 📸 **Still Snapshots (`/video/snapshot`)**: Fetch high-resolution snapshots with optional sensor query (`?camera=back|front`).
 * 🎙️ **Live Audio Stream (`/audio`)**: Stream live microphone audio over chunked WAV (`16-bit PCM mono`).
-* 📢 **Two-Way Talk / Push-to-Talk (`/audio/upload`)**: Speak from the remote web browser or Frigate, outputting your voice through the KaiOS phone's speaker.
 * 📴 **Display Off / Screen Saver Mode (Key `1`)**: Turns the screen completely pitch black while holding `navigator.requestWakeLock('cpu')`, drastically reducing battery usage and device heat for 24/7 operation.
 * ⏺️ **Local Video Recording (`/record/start`, `/record/stop`)**: Record video directly to the device's SD Card (`videos/` folder).
 * 📁 **Web Recordings File Manager (`/files`, `/files.json`)**: Browse, download, and delete recordings remotely over the network.
@@ -74,11 +73,10 @@ When the server is running on port `4444`:
 
 | Endpoint | Method | Description |
 | :--- | :--- | :--- |
-| `/` | `GET` | **Remote Web Control Panel** (interactive video, controls, push-to-talk) |
+| `/` | `GET` | **Remote Web Control Panel** (interactive video, audio monitoring, camera controls) |
 | `/video/mjpeg` | `GET` | **Live Motion JPEG stream** (`multipart/x-mixed-replace`) |
 | `/video/snapshot` | `GET` | **JPEG snapshot** (supports `?camera=front` or `?camera=back`) |
 | `/audio` | `GET` | **Live microphone audio stream** (streaming WAV PCM 16-bit mono) |
-| `/audio/upload` | `POST` | **Two-way talk**: Upload PCM audio to play through phone speaker |
 | `/record/start` | `POST` | Start recording video to SD card storage |
 | `/record/stop` | `POST` | Stop recording and finalize video file |
 | `/record/status`| `GET` | Current recording status JSON |
@@ -166,7 +164,7 @@ This automatically updates `dist/application.zip` and the outer `dist/kaios-ip-c
 Everything checked and tested using **Chrome browser**, **JioPhone (LYF F220B)**, and **Nokia 8110 4G**:
 * **JioPhone (LYF F220B)**: KaiOS 2.5.1, Qualcomm MSM8909, 512 MB RAM (Verified 24/7 background streaming, Wi-Fi wake lock, physical 240x320 keypad navigation, video recording).
 * **Nokia 8110 4G**: KaiOS 2.5.1, Qualcomm MSM8905/MSM8909, 512 MB RAM (Verified camera HAL streaming, web panel, snapshots, D-Pad Center control).
-* **Chrome Browser**: Verified live MJPEG streaming, two-way audio push-to-talk, remote controls, snapshot preview, and video file downloads.
+* **Chrome Browser**: Verified live MJPEG video streaming, live audio monitoring, remote camera controls, snapshot preview, and video file downloads.
 
 ---
 
