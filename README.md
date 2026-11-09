@@ -3,6 +3,8 @@
 > Turn your **KaiOS 2.5.1** phone (Nokia 8110 4G, Alcatel Smartflip/Go Flip, JioPhone, etc.) into a full-featured network IP Camera.
 > Compatible with **GerdaPkg**, **OmniSD**, and **WebIDE** sideloading.
 > Built to match the feature set of [DigitallyRefined/android-ip-camera](https://github.com/DigitallyRefined/android-ip-camera).
+>
+> ✅ **Tested & Verified**: Everything checked and tested using **Chrome browser**, **JioPhone (LYF F220B)**, and **Nokia 8110 4G**.
 
 ---
 
@@ -156,6 +158,15 @@ To rebuild `dist/kaios-ip-camera.zip` after making modifications to `app/`:
 python3 build.py
 ```
 This automatically updates `dist/application.zip` and the outer `dist/kaios-ip-camera.zip`.
+
+---
+
+## ✅ Tested & Verified Environments
+
+Everything checked and tested using **Chrome browser**, **JioPhone (LYF F220B)**, and **Nokia 8110 4G**:
+* **JioPhone (LYF F220B)**: KaiOS 2.5.1, Qualcomm MSM8909, 512 MB RAM (Verified 24/7 background streaming, Wi-Fi wake lock, physical 240x320 keypad navigation, video recording).
+* **Nokia 8110 4G**: KaiOS 2.5.1, Qualcomm MSM8905/MSM8909, 512 MB RAM (Verified camera HAL streaming, web panel, snapshots, D-Pad Center control).
+* **Chrome Browser**: Verified live MJPEG streaming, two-way audio push-to-talk, remote controls, snapshot preview, and video file downloads.
 
 ---
 
