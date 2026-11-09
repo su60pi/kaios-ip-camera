@@ -1,0 +1,10 @@
+{
+  "name": "IP Camera",
+  "description": "Full-featured network IP camera for KaiOS 2.5",
+  "version": "1.0.0",
+  "launch_path": "/index.html",
+  "type": "certified",
+  "developer": {
+    "name": "DigitallyRefined / Antigravity"
+  }
+}

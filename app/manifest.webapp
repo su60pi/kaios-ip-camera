@@ -1,0 +1,68 @@
+{
+  "name": "IP Camera",
+  "description": "Full-featured network IP camera for KaiOS 2.5. Remote web control, live MJPEG streaming, still snapshots, two-way audio talk, and local recording.",
+  "version": "1.0.0",
+  "launch_path": "/index.html",
+  "type": "certified",
+  "origin": "app://ipcamera.kaios",
+  "permissions": {
+    "tcp-socket": {
+      "description": "Create TCP server socket to stream video and handle HTTP requests"
+    },
+    "video-capture": {
+      "description": "Capture camera video stream"
+    },
+    "audio-capture": {
+      "description": "Capture microphone audio stream"
+    },
+    "camera": {
+      "description": "Control camera sensor and flash hardware"
+    },
+    "wifi-manage": {
+      "description": "Read Wi-Fi connection info and IP address"
+    },
+    "power": {
+      "description": "Keep CPU awake for background streaming and screen-off operation"
+    },
+    "device-storage:sdcard": {
+      "access": "readwrite",
+      "description": "Save video recordings and snapshots to SD card"
+    },
+    "device-storage:videos": {
+      "access": "readwrite",
+      "description": "Save video recordings"
+    },
+    "device-storage:pictures": {
+      "access": "readwrite",
+      "description": "Save captured snapshots"
+    },
+    "flashlight": {
+      "description": "Control device flashlight LED"
+    },
+    "settings": {
+      "access": "readwrite",
+      "description": "Control device settings and flashlight"
+    },
+    "audio-channel-content": {
+      "description": "Capture and stream media audio"
+    }
+  },
+  "icons": {
+    "56": "/icons/icon-56.png",
+    "112": "/icons/icon-112.png",
+    "128": "/icons/icon-128.png"
+  },
+  "developer": {
+    "name": "DigitallyRefined / Antigravity",
+    "url": "https://github.com/DigitallyRefined/android-ip-camera"
+  },
+  "locales": {
+    "en-US": {
+      "name": "IP Camera",
+      "description": "KaiOS IP Camera streaming app"
+    }
+  },
+  "default_locale": "en-US",
+  "cursor": false,
+  "theme_color": "#111827"
+}

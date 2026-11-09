@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=240, height=320, user-scalable=no, initial-scale=1.0">
+  <title>IP Camera</title>
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <header>
+    <div class="app-title">📷 IP Camera</div>
+    <div class="status-indicator">
+      <span class="status-dot" id="header-dot"></span>
+      <span id="header-status">OFFLINE</span>
+    </div>
+  </header>
+
+  <div id="main-container">
+    <div class="viewfinder-card">
+      <canvas id="preview-canvas" width="240" height="100"></canvas>
+      <div class="viewfinder-overlay">
+        <span class="vf-badge" id="vf-cam">REAR</span>
+        <span class="vf-badge" id="vf-fps">0 FPS</span>
+      </div>
+    </div>
+
+    <div class="ip-card">
+      <div class="ip-label" id="ip-card-label">SERVER ADDRESS</div>
+      <div class="ip-address" id="server-url">Press START to begin</div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-item">
+        <span>👥 Viewers</span>
+        <b id="stat-viewers">0</b>
+      </div>
+      <div class="stat-item">
+        <span>🔋 Battery</span>
+        <b id="stat-battery">--%</b>
+      </div>
+      <div class="stat-item">
+        <span>📶 Wi-Fi</span>
+        <b id="stat-wifi">--</b>
+      </div>
+      <div class="stat-item">
+        <span>📐 Res</span>
+        <b id="stat-res">640x480</b>
+      </div>
+    </div>
+
+    <div class="shortcuts-hint">
+      <b>Center</b>: Start/Stop &bull; <b>1</b>: Screen Off<br>
+      <b>2</b>: Torch &bull; <b>3</b>: Snap &bull; <b>4/6</b>: Res &bull; <b>0</b>: Mute
+    </div>
+  </div>
+
+  <!-- Settings View Modal -->
+  <div id="settings-view">
+    <div class="setting-item focused" data-setting="port">
+      <div class="setting-label">Server Port</div>
+      <div class="setting-value" id="set-port">4444</div>
+    </div>
+    <div class="setting-item" data-setting="resolution">
+      <div class="setting-label">Resolution (Enter to cycle)</div>
+      <div class="setting-value" id="set-res">640x480</div>
+    </div>
+    <div class="setting-item" data-setting="fps">
+      <div class="setting-label">Frame Rate (Enter to cycle)</div>
+      <div class="setting-value" id="set-fps">15 FPS</div>
+    </div>
+    <div class="setting-item" data-setting="quality">
+      <div class="setting-label">JPEG Quality</div>
+      <div class="setting-value" id="set-qual">60%</div>
+    </div>
+    <div class="setting-item" data-setting="camera">
+      <div class="setting-label">Default Camera</div>
+      <div class="setting-value" id="set-cam">Rear</div>
+    </div>
+    <div class="setting-item" data-setting="audio">
+      <div class="setting-label">Audio Streaming</div>
+      <div class="setting-value" id="set-audio">Enabled</div>
+    </div>
+    <div class="setting-item" data-setting="auth">
+      <div class="setting-label">HTTP Basic Auth</div>
+      <div class="setting-value" id="set-auth">Disabled</div>
+    </div>
+  </div>
+
+  <!-- Display Off / Screen Saver for 24/7 background streaming -->
+  <div id="screen-saver">
+    <div class="saver-dot"></div>
+    <div class="saver-hint">STREAMING ACTIVE &bull; PRESS ANY KEY</div>
+  </div>
+
+  <footer>
+    <span class="softkey left" id="sk-left">Camera</span>
+    <span class="softkey center" id="sk-center">START</span>
+    <span class="softkey right" id="sk-right">Settings</span>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="js/web_panel_html.js"></script>
+  <script src="js/camera.js"></script>
+  <script src="js/mjpeg_streamer.js"></script>
+  <script src="js/audio_streamer.js"></script>
+  <script src="js/recorder.js"></script>
+  <script src="js/http_server.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
