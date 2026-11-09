@@ -1,4 +1,4 @@
 {
   "version": 1,
-  "manifestURL": "app://ipcamera.kaios/manifest.webapp"
+  "manifestURL": "https://raw.githubusercontent.com/su60pi/kaios-ip-camera/main/app/manifest.webapp"
 }
