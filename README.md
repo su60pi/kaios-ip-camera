@@ -119,6 +119,24 @@ Due to KaiOS 2.5's web architecture (Gecko 48), camera frames are captured to an
 > [!NOTE]
 > Reaching 20–25 FPS at 480p/720p is physically impossible on KaiOS 2.5 feature phones because each frame requires hardware-accelerated video encoding (H.264/HEVC), which is not exposed to web apps in KaiOS 2.5. To maintain stability and prevent the 512 MB RAM from overflowing, the app automatically drops frames if the CPU is still busy compressing the previous frame.
 
+### 🔬 Technical Deep-Dive: Hardware Video Recording vs. Live MJPEG Streaming
+
+A common question is: *Why can KaiOS record smooth 30 FPS video to storage, but live web streaming maxes out around 10–15 FPS?*
+
+| Feature | Local Video Recording (`/record/start`) | Live Web IP Stream (`/video/mjpeg`) |
+| :--- | :--- | :--- |
+| **Encoding Engine** | **Qualcomm Hardware VPU** (Venus H.264 / 3GP Encoder) | **CPU Software Compression** (`canvas.toBlob`) |
+| **Processing Overhead** | Zero CPU overhead (Direct hardware memory bus / Ion) | 100% CPU usage on Cortex-A7 main thread |
+| **Destination** | SD Card / Flash storage container file (`.mp4` / `.webm`) | Live HTTP multipart stream to network clients |
+| **Frame Rate** | **Smooth ~30 FPS** | **~8 – 15 FPS** (CPU compute bound) |
+
+* **Hardware Recording (Fast)**:  
+  When recording video locally (using the native Camera app or this app's **Local Recording** feature), the `MediaRecorder` API routes raw camera sensor frames directly through Android's `libstagefright` into the **Qualcomm Video Processing Unit (VPU)**. The CPU never touches raw pixels, enabling smooth 30 FPS recording with minimal battery drain.
+* **Live MJPEG Streaming (CPU Bound)**:  
+  KaiOS 2.5 (Gecko 48) does not support low-latency hardware WebRTC video streaming. To make the video feed universally viewable across any browser, NVR (Frigate, Home Assistant), VLC, or OpenCV without special plugins, the stream uses **Motion-JPEG (MJPEG)**. MJPEG sends a complete, standalone JPEG photo on every frame, which requires the dual-core 1.1 GHz CPU to manually compress every frame in software via `canvas.toBlob()`.
+* **Adreno 304 GPU Role**:  
+  The Adreno 304 GPU handles display compositing, 60 Hz UI animations, and WebGL rendering. It does not perform JPEG compression calculations.
+
 ---
 
 ## 🎥 Frigate NVR & Home Assistant Configuration
