@@ -106,6 +106,21 @@ http://[phone-ip]:4444/?torch=on&zoom=2.0&resolution=640x480&rotate=90
 
 ---
 
+## ⚡ Performance & Realistic FPS on KaiOS Hardware
+
+Due to KaiOS 2.5's web architecture (Gecko 48), camera frames are captured to an HTML5 `<canvas>` and encoded to JPEG in software using the CPU (Snapdragon 205/210 dual-core ARM Cortex-A7 @ 1.1 GHz). Below are the realistic FPS expectations:
+
+| Resolution | Quality Setting | Realistic FPS | Primary Limiting Factor |
+| :--- | :--- | :--- | :--- |
+| **640 × 480 (VGA)** | `0.6` | **8 – 12 FPS** | CPU software JPEG compression time (~70ms/frame) |
+| **320 × 240 (QVGA)** | `0.5` | **14 – 16 FPS** | Maximum single-threaded processing limit on Cortex-A7 |
+| **160 × 120** | `0.4` | **18 – 20 FPS** | Extreme low quality, small frame size |
+
+> [!NOTE]
+> Reaching 20–25 FPS at 480p/720p is physically impossible on KaiOS 2.5 feature phones because each frame requires hardware-accelerated video encoding (H.264/HEVC), which is not exposed to web apps in KaiOS 2.5. To maintain stability and prevent the 512 MB RAM from overflowing, the app automatically drops frames if the CPU is still busy compressing the previous frame.
+
+---
+
 ## 🎥 Frigate NVR & Home Assistant Configuration
 
 ### Frigate NVR Configuration
