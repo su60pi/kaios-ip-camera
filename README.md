@@ -23,6 +23,7 @@
 * 🔍 **Digital Zoom & Visual Controls**: Digital zoom (1.0x - 4.0x), software exposure, contrast, rotation (0°, 90°, 180°, 270°), and video mirror.
 * 🛂 **Optional HTTP Basic Authentication**: Protect stream access with username and password.
 * 📊 **Live Telemetry (`/info.json`)**: Real-time battery %, charging status, Wi-Fi signal, actual FPS, viewer count, and uptime.
+* 🧠 **On-Device AI Watchdog (Mirage 51M)**: Built-in integration with the ultra-compact Mirage 51M local vision model for real-time scene understanding, person/pet detection, and instant Telegram/Discord photo alerts.
 
 ---
 
@@ -136,6 +137,34 @@ A common question is: *Why can KaiOS record smooth 30 FPS video to storage, but 
   KaiOS 2.5 (Gecko 48) does not support low-latency hardware WebRTC video streaming. To make the video feed universally viewable across any browser, NVR (Frigate, Home Assistant), VLC, or OpenCV without special plugins, the stream uses **Motion-JPEG (MJPEG)**. MJPEG sends a complete, standalone JPEG photo on every frame, which requires the dual-core 1.1 GHz CPU to manually compress every frame in software via `canvas.toBlob()`.
 * **Adreno 304 GPU Role**:  
   The Adreno 304 GPU handles display compositing, 60 Hz UI animations, and WebGL rendering. It does not perform JPEG compression calculations.
+
+---
+
+## 🤖 Local AI Watchdog (Powered by Mirage 51M)
+
+Turn your KaiOS phone into a **100% on-device AI Smart Security Camera** using Cactus Compute's new ultra-compact **Mirage 51M** Vision-Language Model.
+
+```
+[KaiOS Feature Phone] ──(Wi-Fi Stream)──> [Local Mirage 51M VLM] ──> Telegram / Discord Alerts
+```
+
+* 🧠 **100% Local on CPU**: Runs in ~1 second on standard CPUs without GPU or cloud APIs.
+* 🔒 **Zero Cloud & Zero Subscriptions**: No monthly fees, no tracking, complete privacy.
+* 🚨 **Natural Language Alerts**: Detects persons, pets, and vehicles, sending live photo alerts to your **Telegram** or **Discord**!
+* 📱 **Runs Anywhere**: Supports Android (**Termux**), Linux, Windows, macOS, and Raspberry Pi.
+
+### Quickstart
+```bash
+# 1. Navigate to the AI Watchdog directory
+cd ai-watchdog
+
+# 2. Start monitoring your KaiOS camera
+python3 ai_watchdog.py --ip 192.168.1.15
+
+# (Optional) With Discord or Telegram mobile alerts:
+python3 ai_watchdog.py --ip 192.168.1.15 --discord "https://discord.com/api/webhooks/..."
+```
+See the [AI Watchdog Documentation](ai-watchdog/README.md) for full configuration flags.
 
 ---
 
