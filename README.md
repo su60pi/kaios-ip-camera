@@ -144,6 +144,10 @@ A common question is: *Why can KaiOS record smooth 30 FPS video to storage, but 
 
 Turn your KaiOS phone into a **100% on-device AI Smart Security Camera** using Cactus Compute's new ultra-compact **Mirage 51M** Vision-Language Model.
 
+<p align="center">
+  <img src="assets/mirage_terminal.png" alt="Cactus Mirage 51M AI Watchdog Live Terminal" width="100%">
+</p>
+
 ```
 [KaiOS Feature Phone] ──(Wi-Fi Stream)──> [Local Mirage 51M VLM] ──> Telegram / Discord Alerts
 ```

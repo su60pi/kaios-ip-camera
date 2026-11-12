@@ -4,6 +4,10 @@ Turn your KaiOS phone into a **100% on-device AI Smart Security Camera**.
 
 Using the ultra-compact **Mirage 51M** Vision-Language Model (VLM), the AI Watchdog continuously monitors your camera feed, understands scenes in natural language, and sends real-time photo alerts to your **Telegram** or **Discord**!
 
+<p align="center">
+  <img src="../assets/mirage_terminal.png" alt="Cactus Mirage 51M AI Watchdog Live Terminal" width="100%">
+</p>
+
 ## ✨ Key Features
 * 🧠 **100% On-Device AI**: Powered by Cactus Mirage (51M parameters, ~22 MB model footprint).
 * ⚡ **Fast CPU Inference**: Runs in ~1 second on standard CPUs without requiring an expensive GPU or cloud API.
